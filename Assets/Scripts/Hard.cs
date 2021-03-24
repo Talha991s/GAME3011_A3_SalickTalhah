@@ -1,11 +1,11 @@
-﻿
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class Tile : MonoBehaviour {
+public class Hard : MonoBehaviour
+{
 	private static Color selectedColor = new Color(.5f, .5f, .5f, 1.0f);
-	private static Tile previousSelected = null;
+	private static Hard previousSelected = null;
 
 	private SpriteRenderer render;
 	private bool isSelected = false;
@@ -13,52 +13,55 @@ public class Tile : MonoBehaviour {
 	private Vector2[] adjacentDirections = new Vector2[] { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
 
 	private bool matchFound = false;
-	void Awake() {
+	void Awake()
+	{
 		render = GetComponent<SpriteRenderer>();
-    }
+	}
 
-	private void Select() {
+	private void Select()
+	{
 		isSelected = true;
 		render.color = selectedColor;
-		previousSelected = gameObject.GetComponent<Tile>();
+		previousSelected = gameObject.GetComponent<Hard>();
 		SFXManager.instance.PlaySFX(Clip.Select);
 	}
 
-	private void Deselect() {
+	private void Deselect()
+	{
 		isSelected = false;
 		render.color = Color.white;
 		previousSelected = null;
 	}
 
-    private void OnMouseDown()
-    {
-        if(render.sprite == null || BoardManager.instance.IsShifting)
-        {
+	private void OnMouseDown()
+	{
+		if (render.sprite == null || BoardManager.instance.IsShifting)
+		{
 			return;
-        }
+		}
 
-		if(isSelected)
-        {
+		if (isSelected)
+		{
 			Deselect();
-        }
-        else
-        {
-			if(previousSelected == null)
-            {
+		}
+		else
+		{
+			if (previousSelected == null)
+			{
 				Select();
-            }
+			}
 			else
 			{
 				if (GetAllAdjacentTiles().Contains(previousSelected.gameObject))
-				{ 
+				{
 					SwapSprite(previousSelected.render);
 					previousSelected.ClearAllMatches();
 					previousSelected.Deselect();
 					ClearAllMatches();
 				}
 				else
-				{ 
-					previousSelected.GetComponent<Tile>().Deselect();
+				{
+					previousSelected.GetComponent<Hard>().Deselect();
 					Select();
 				}
 			}
@@ -68,17 +71,18 @@ public class Tile : MonoBehaviour {
 	}
 
 	public void SwapSprite(SpriteRenderer render2)
-    {
-		if(render.sprite == render2.sprite)
-        {
+	{
+		if (render.sprite == render2.sprite)
+		{
 			return;
-        }
+		}
 
 		Sprite tempSprite = render2.sprite;
 		render2.sprite = render.sprite;
 		render.sprite = tempSprite;
 		SFXManager.instance.PlaySFX(Clip.Swap);
-    }
+		GUIManager.instance.MoveCounter--;
+	}
 
 	private GameObject GetAdjacent(Vector2 castDir)
 	{
@@ -101,33 +105,33 @@ public class Tile : MonoBehaviour {
 	}
 
 	private List<GameObject> FindMatch(Vector2 castDir)
-	{ 
-		List<GameObject> matchingTiles = new List<GameObject>(); 
-		RaycastHit2D hit = Physics2D.Raycast(transform.position, castDir); 
-		
+	{
+		List<GameObject> matchingTiles = new List<GameObject>();
+		RaycastHit2D hit = Physics2D.Raycast(transform.position, castDir);
+
 		while (hit.collider != null && hit.collider.GetComponent<SpriteRenderer>().sprite == render.sprite)
-		{ 
+		{
 			matchingTiles.Add(hit.collider.gameObject);
 			hit = Physics2D.Raycast(hit.collider.transform.position, castDir);
 		}
-		
-		return matchingTiles; 
+
+		return matchingTiles;
 	}
 
-	private void ClearMatch(Vector2[] paths) 
+	private void ClearMatch(Vector2[] paths)
 	{
-		List<GameObject> matchingTiles = new List<GameObject>(); 
-		for (int i = 0; i < paths.Length; i++) 
+		List<GameObject> matchingTiles = new List<GameObject>();
+		for (int i = 0; i < paths.Length; i++)
 		{
 			matchingTiles.AddRange(FindMatch(paths[i]));
 		}
-		if (matchingTiles.Count >= 2) 
+		if (matchingTiles.Count == 4)
 		{
-			for (int i = 0; i < matchingTiles.Count; i++) 
+			for (int i = 0; i < matchingTiles.Count; i++)
 			{
 				matchingTiles[i].GetComponent<SpriteRenderer>().sprite = null;
 			}
-			matchFound = true; 
+			matchFound = true;
 		}
 	}
 
@@ -144,9 +148,10 @@ public class Tile : MonoBehaviour {
 		{
 			render.sprite = null;
 			matchFound = false;
-
+			StopCoroutine(BoardManager.instance.FindNullTiles());
+			StartCoroutine(BoardManager.instance.FindNullTiles());
 			SFXManager.instance.PlaySFX(Clip.Clear);
+
 		}
 	}
-
 }
