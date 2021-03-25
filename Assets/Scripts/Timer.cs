@@ -28,7 +28,8 @@ public class Timer : MonoBehaviour
         }
         else
         {
-            GameOver.SetActive(true);
+            GUIManager.instance.GameOver();
+            //GameOver.SetActive(true);
             //Time.timeScale = 0;
         }
     }
