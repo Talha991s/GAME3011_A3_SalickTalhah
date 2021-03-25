@@ -37,6 +37,7 @@ public class GameManager : MonoBehaviour {
 
 	// Load a scene with a specified string name
 	public void LoadScene(string sceneName) {
+		Time.timeScale = 1.0f;
 		instance.StartCoroutine(Load(sceneName));
 		instance.StartCoroutine(FadeOut(instance.faderObj, instance.faderImg));
 	}
